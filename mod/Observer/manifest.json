@@ -1,0 +1,10 @@
+{
+  "Name": "Stardew Earnings Observer",
+  "Author": "TorratDev",
+  "Version": "0.1.0",
+  "Description": "Read-only snapshots for the local Stardew earnings assistant. Never performs game actions.",
+  "UniqueID": "TorratDev.SvOptimizer.Observer",
+  "EntryDll": "SvOptimizer.Observer.dll",
+  "MinimumApiVersion": "4.0.0",
+  "UpdateKeys": []
+}

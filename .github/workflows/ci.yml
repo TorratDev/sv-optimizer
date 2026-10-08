@@ -1,0 +1,33 @@
+name: Validate crop assistant
+on: [push, pull_request]
+jobs:
+  rust-and-protocol:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo test --locked
+      - run: dotnet build mod/ProtocolChecks/ProtocolChecks.csproj
+      - run: dotnet run --project mod/ProtocolChecks --no-build
+      - run: cargo build --locked
+      - name: C# to Rust and terminal integration
+        shell: bash
+        run: |
+          suffix=""
+          if [[ "$RUNNER_OS" == "Windows" ]]; then suffix=".exe"; fi
+          python tests/cross_language.py "target/debug/sv-optimizer$suffix"
+          python tests/terminal_chat.py "target/debug/sv-optimizer$suffix"

@@ -1,0 +1,118 @@
+syntax = "proto3";
+package svoptimizer.v1;
+option csharp_namespace = "SvOptimizer.Protocol";
+
+// The Rust process hosts this service on loopback only. The mod is the client,
+// so no ASP.NET Core server/runtime needs to be installed into the game.
+service FarmBridge {
+  rpc Observe(stream FarmSnapshot) returns (stream RefreshRequest);
+}
+message RefreshRequest { string request_id = 1; }
+message Tile { int32 x = 1; int32 y = 2; }
+message Material { string item_id = 1; uint32 quantity = 2; }
+message ItemStack {
+  string item_id = 1;
+  string name = 2;
+  uint32 quantity = 3;
+  uint32 quality = 4;
+  int64 sale_price = 5; // actual per-item price, including current professions
+  bool is_crop = 6;
+  string source = 7;
+  Tile source_tile = 8;
+  double retrieval_minutes = 9;
+}
+message ToolState { string name = 1; uint32 upgrade_level = 2; }
+message SkillState { string name = 1; uint32 level = 2; }
+message CropDefinition {
+  string seed_id = 1;
+  string harvest_id = 2;
+  string name = 3;
+  repeated uint32 growth_phases = 4; // excludes the terminal mature phase
+  uint32 regrow_days = 5; // 0 = single harvest
+  uint32 minimum_yield = 6;
+  double expected_yield = 7;
+  int64 base_sale_price = 8; // normal quality, before Tiller
+  repeated string seasons = 9;
+  bool trellis = 10;
+  bool needs_watering = 11;
+  bool forage_crop = 12;
+  bool supported = 13;
+  string unsupported_reason = 14;
+  repeated int64 sale_prices_by_quality = 15; // normal, silver, gold, iridium; actual current-profession prices
+}
+message GrowingCrop {
+  string seed_id = 1;
+  uint32 days_to_harvest = 2; // with daily watering
+  bool dead = 3;
+}
+message Plot {
+  Tile tile = 1;
+  bool tilled = 2;
+  bool clearable = 3;
+  bool reachable = 4;
+  bool sprinkler_covered = 5;
+  bool watered_today = 6;
+  uint32 quality_fertilizer = 7; // 0 none, 1 basic, 2 quality, 3 deluxe
+  double speed_bonus = 8; // fertilizer only; Agriculturist is separate
+  GrowingCrop crop = 9;
+  double clearing_energy = 10;
+  double clearing_minutes = 11;
+  string obstruction = 12;
+}
+message Offer {
+  string item_id = 1;
+  string name = 2;
+  int64 price = 3;
+  int32 stock = 4; // -1 unlimited; otherwise shared total for this shop/day
+}
+message ShopDay {
+  uint32 day = 1; // current season day
+  string shop = 2;
+  uint32 opens_at = 3; // game HHMM
+  uint32 closes_at = 4;
+  bool buys_crops = 5;
+  repeated Offer offers = 6;
+  double travel_minutes = 7;
+  uint32 return_not_before = 8; // 0 ordinary; festival visits can return at 2200
+}
+message SprinklerOption {
+  string item_id = 1;
+  string name = 2;
+  repeated Tile coverage_offsets = 3;
+  repeated Material materials = 4;
+  bool recipe_unlocked = 5;
+}
+message WeatherDay { uint32 day = 1; bool rain = 2; }
+message FarmSnapshot {
+  uint32 schema_version = 1;
+  string save_id = 2;
+  string player_id = 3;
+  string game_version = 4;
+  string smapi_version = 5;
+  int64 captured_at_unix_ms = 6;
+  bool world_ready = 7;
+  uint32 year = 8;
+  string season = 9;
+  uint32 day = 10;
+  uint32 time_of_day = 11;
+  int64 money = 12;
+  uint32 farming_level = 13;
+  repeated uint32 professions = 14;
+  double energy = 15;
+  double max_energy = 16;
+  double watering_energy_per_tile = 17;
+  double watering_minutes_per_tile = 18;
+  uint32 estimated_watering_capacity = 19;
+  repeated ItemStack items = 20;
+  repeated ToolState tools = 21;
+  repeated CropDefinition crops = 22;
+  repeated Plot plots = 23;
+  repeated ShopDay shops = 24;
+  repeated SprinklerOption sprinklers = 25;
+  repeated WeatherDay known_weather = 26;
+  repeated string assumptions = 27;
+  repeated string warnings = 28;
+  bool single_player = 29;
+  repeated SkillState skills = 30;
+  string refresh_request_id = 31; // exact correlation; timestamps alone can collide
+}
