@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>SvOptimizer.Observer</AssemblyName>
+    <EnableModDeploy>false</EnableModDeploy>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" Condition="'$(SmapiApiPath)' == ''" />
+    <ProjectReference Include="../Core/Core.csproj" />
+    <Reference Include="StardewModdingAPI" HintPath="$(SmapiApiPath)/StardewModdingAPI.dll" Private="false" Condition="'$(SmapiApiPath)' != ''" />
+    <Reference Include="SMAPI.Toolkit.CoreInterfaces" HintPath="$(SmapiApiPath)/SMAPI.Toolkit.CoreInterfaces.dll" Private="false" Condition="'$(SmapiApiPath)' != ''" />
+    <None Update="manifest.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
