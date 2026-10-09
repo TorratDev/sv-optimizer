@@ -11,7 +11,7 @@ root = Path(__file__).resolve().parents[1]
 binary = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "target/debug/sv-optimizer"
 dotnet = os.environ.get("DOTNET_COMMAND", "dotnet")
 with tempfile.TemporaryDirectory() as directory:
-    server = subprocess.Popen([str(binary), "--data-dir", directory, "--port", "52769", "mcp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    server = subprocess.Popen([str(binary), "--data-dir", directory, "--port", "52769", "mcp"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8")
     observer = None
     try:
         config = Path(directory) / "bridge.json"
@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory() as directory:
             if config.exists(): break
             if server.poll() is not None: raise RuntimeError("Rust bridge failed to start")
             time.sleep(0.05)
-        observer = subprocess.Popen([dotnet, "run", "--project", str(root / "mod/ProtocolChecks"), "--no-build", "--", "--bridge", directory, str(root / "fixtures/spring-demo.json")], stdout=subprocess.PIPE, text=True)
+        observer = subprocess.Popen([dotnet, "run", "--project", str(root / "mod/ProtocolChecks"), "--no-build", "--", "--bridge", directory, str(root / "fixtures/spring-demo.json")], stdout=subprocess.PIPE, text=True, encoding="utf-8")
         while True:
             line = observer.stdout.readline()
             if not line: raise RuntimeError("C# observer failed to connect")
@@ -42,7 +42,7 @@ with tempfile.TemporaryDirectory() as directory:
         progress = rpc(4, "tools/call", dict(name="check_plan_progress", arguments={}))
         assert progress["isError"] is False, progress
         assert progress["structuredContent"]["plan_id"] == plan["structuredContent"]["plan"]["id"]
-        print("C# → gRPC → Rust → MCP live snapshot, refresh, planning, and progress passed.")
+        print("C# -> gRPC -> Rust -> MCP live snapshot, refresh, planning, and progress passed.")
     finally:
         if observer is not None:
             observer.terminate()

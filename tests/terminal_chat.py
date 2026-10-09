@@ -31,12 +31,12 @@ server = ThreadingHTTPServer(("127.0.0.1", 0), Ollama)
 threading.Thread(target=server.serve_forever, daemon=True).start()
 try:
     with tempfile.TemporaryDirectory() as directory:
-        result = subprocess.run([str(binary), "--data-dir", directory, "--fixture", str(root / "fixtures/spring-demo.json"), "chat", "--model", "qwen3:4b", "--ollama-url", f"http://127.0.0.1:{server.server_port}"], input="Create a five day earnings plan\n/details\n/quit\n", capture_output=True, text=True, timeout=40)
+        result = subprocess.run([str(binary), "--data-dir", directory, "--fixture", str(root / "fixtures/spring-demo.json"), "chat", "--model", "qwen3:4b", "--ollama-url", f"http://127.0.0.1:{server.server_port}"], input="Create a five day earnings plan\n/details\n/quit\n", capture_output=True, text=True, encoding="utf-8", timeout=40)
         assert result.returncode == 0, result.stderr
         assert "SIMULATION" in result.stdout
         assert "feasible estimate" in result.stdout
         assert "Assumption:" in result.stdout
         assert len(tool_seen) == 1
-        print("Terminal → local Ollama API mock → MCP subprocess → calculated plan and details passed.")
+        print("Terminal -> local Ollama API mock -> MCP subprocess -> calculated plan and details passed.")
 finally:
     server.shutdown()
